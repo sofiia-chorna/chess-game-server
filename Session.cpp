@@ -23,21 +23,31 @@ void Session::doRead()
             if (!ec)
             {
                 std::cout << "Received message from client: " << data_ << "\n";
-                doWrite(length);
+                handleRequest(data_, length); // Call handleRequest instead of doWrite
             }
         });
 }
 
-void Session::doWrite(std::size_t length)
+void Session::doWrite(const std::string &message)
 {
     auto self(shared_from_this());
-    boost::asio::async_write(
-        socket_, boost::asio::buffer(data_, length),
-        [this, self](boost::system::error_code ec, std::size_t /*length*/)
-        {
-            if (!ec)
-            {
-                doRead();
-            }
-        });
+    boost::asio::async_write(socket_, boost::asio::buffer(message),
+                             [this, self](boost::system::error_code ec, std::size_t /*length*/)
+                             {
+                                 if (ec)
+                                 {
+                                     std::cerr << "Error sending response: " << ec.message() << "\n";
+                                 }
+                             });
+}
+
+void Session::handleRequest(const char *data, std::size_t length)
+{
+    std::string request(data, length);
+    // Respond with a simple HTTP message
+    std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
+    doWrite(response);
+    //        // Handle the request from the client
+    //        std::string response = "Server received: " + request;
+    //        doWrite(response);
 }

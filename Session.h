@@ -14,7 +14,8 @@ public:
 
 private:
     void doRead();
-    void doWrite(std::size_t length);
+    void doWrite(const std::string &message);
+    void handleRequest(const char *data, std::size_t length);
 
     tcp::socket socket_;
     enum
